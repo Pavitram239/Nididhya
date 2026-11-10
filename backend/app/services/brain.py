@@ -230,6 +230,28 @@ INSTRUCTIONS:
 If no specific reference is mentioned or active, return: {{}}
 """
 
+        # Try Bedrock first if available
+        if self.bedrock_client:
+            try:
+                bedrock_msgs = [{"role": "user", "content": [{"text": user_query}]}]
+                response = self.bedrock_client.converse(
+                    modelId=self.bedrock_model_id,
+                    messages=bedrock_msgs,
+                    system=[{"text": system_prompt}],
+                    inferenceConfig={"temperature": 0}
+                )
+                output = response.get("output", {}).get("message", {}).get("content", [])
+                if output and "text" in output[0]:
+                    txt = output[0]["text"].strip()
+                    if txt.startswith("```json"): txt = txt[7:-3].strip()
+                    elif txt.startswith("```"): txt = txt[3:-3].strip()
+                    result = json.loads(txt)
+                    if any(k in result for k in ["vachanamrut_no", "vat_no", "shlok_no"]):
+                        print(f"🧠 Brain Router (Bedrock): Detected {result}", flush=True)
+                        return result
+            except Exception as e:
+                print(f"Router Bedrock error: {e}", flush=True)
+
         # Try Fast Groq first if available (50ms latency)
         if self.groq_client:
             try:
@@ -480,22 +502,6 @@ If no specific reference is mentioned or active, return: {{}}
         messages = self._build_messages(system_prompt, user_prompt, history)
         gemini_prompt = self._build_gemini_prompt(system_prompt, user_prompt, history)
 
-        # Tier 0: Try AWS Bedrock (Primary - Uses AWS Credits)
-        if self.bedrock_client:
-            try:
-                bedrock_msgs = self._build_bedrock_messages(user_prompt, history)
-                response = self.bedrock_client.converse(
-                    modelId=self.bedrock_model_id,
-                    messages=bedrock_msgs,
-                    system=[{"text": system_prompt}],
-                    inferenceConfig={"temperature": 0.3}
-                )
-                output = response.get("output", {}).get("message", {}).get("content", [])
-                if output and "text" in output[0]:
-                    return output[0]["text"]
-            except Exception as e:
-                print(f"[Brain] AWS Bedrock converse failed: {e}. Failing over...")
-
         # Tier 0: Try AWS Bedrock Stream (Primary - Uses AWS Credits)
         if self.bedrock_client:
             try:
@@ -515,7 +521,7 @@ If no specific reference is mentioned or active, return: {{}}
                                 yield text
                     return
             except Exception as e:
-                print(f"[Brain] AWS Bedrock stream failed: {e}. Failing over...")
+                print(f"[Brain] AWS Bedrock stream failed: {e}. Failing over...", flush=True)
 
         # Tier 1: Try FreeLLMAPI Unified Gateway (34 free providers with auto-failover)
         if self.freellm_client:
@@ -575,22 +581,6 @@ If no specific reference is mentioned or active, return: {{}}
         messages = self._build_messages(system_prompt, user_prompt, history)
         gemini_prompt = self._build_gemini_prompt(system_prompt, user_prompt, history)
 
-        # Tier 0: Try AWS Bedrock (Primary - Uses AWS Credits)
-        if self.bedrock_client:
-            try:
-                bedrock_msgs = self._build_bedrock_messages(user_prompt, history)
-                response = self.bedrock_client.converse(
-                    modelId=self.bedrock_model_id,
-                    messages=bedrock_msgs,
-                    system=[{"text": system_prompt}],
-                    inferenceConfig={"temperature": 0.3}
-                )
-                output = response.get("output", {}).get("message", {}).get("content", [])
-                if output and "text" in output[0]:
-                    return output[0]["text"]
-            except Exception as e:
-                print(f"[Brain] AWS Bedrock converse failed: {e}. Failing over...")
-
         # Tier 0: Try AWS Bedrock Stream (Primary - Uses AWS Credits)
         if self.bedrock_client:
             try:
@@ -610,7 +600,7 @@ If no specific reference is mentioned or active, return: {{}}
                                 yield text
                     return
             except Exception as e:
-                print(f"[Brain] AWS Bedrock stream failed: {e}. Failing over...")
+                print(f"[Brain] AWS Bedrock stream failed: {e}. Failing over...", flush=True)
 
         # Tier 1: Try FreeLLMAPI Unified Gateway (34 free providers with auto-failover)
         if self.freellm_client:
