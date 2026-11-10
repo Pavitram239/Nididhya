@@ -31,6 +31,11 @@ except ImportError:
     OpenAI = None
 
 try:
+    import boto3
+except ImportError:
+    boto3 = None
+
+try:
     from fastembed import TextEmbedding
 except ImportError:
     TextEmbedding = None
@@ -66,6 +71,21 @@ class Brain:
             except Exception as e:
                 print(f"[Brain Notice] Ollama daemon not reachable at {self.ollama_host}: {e}")
                 self.ollama_available = False
+
+        # 0. AWS Bedrock Client (Primary - Billed to AWS Credits)
+        self.bedrock_region = os.getenv("AWS_REGION", os.getenv("AWS_DEFAULT_REGION", "us-east-1"))
+        self.bedrock_model_id = os.getenv("BEDROCK_MODEL_ID", "us.meta.llama3-3-70b-instruct-v1:0")
+        self.bedrock_client = None
+        if boto3:
+            try:
+                self.bedrock_client = boto3.client(
+                    service_name="bedrock-runtime",
+                    region_name=self.bedrock_region
+                )
+                print(f"[Brain] AWS Bedrock client initialized (Region: {self.bedrock_region}, Model: {self.bedrock_model_id}).")
+            except Exception as e:
+                print(f"[Brain Notice] AWS Bedrock init error: {e}")
+                self.bedrock_client = None
 
         # 2. Cloud LLMs: FreeLLMAPI (Tier 1 Primary), Groq, and Google Gemini
         self.freellm_url = os.getenv("FREELLMAPI_URL", "http://localhost:3001/v1")
@@ -435,10 +455,67 @@ If no specific reference is mentioned or active, return: {{}}
             return f"{system_prompt}\n\n=== CONVERSATION HISTORY ===\n{hist_text}=== CURRENT QUESTION & CONTEXT ===\n{user_prompt}"
         return f"{system_prompt}\n\n{user_prompt}"
 
+    def _build_bedrock_messages(self, user_prompt: str, history: list = None):
+        """Constructs Bedrock converse-compatible messages list."""
+        bedrock_msgs = []
+        if history:
+            for msg in history[-6:]:
+                role = getattr(msg, "role", None) or (msg.get("role") if isinstance(msg, dict) else "user")
+                content = getattr(msg, "content", None) or (msg.get("content") if isinstance(msg, dict) else "")
+                if role in ("user", "assistant") and content and not ("Jay Swaminarayan" in content and role == "assistant" and len(content) < 160):
+                    if bedrock_msgs and bedrock_msgs[-1]["role"] == role:
+                        bedrock_msgs[-1]["content"][0]["text"] += f"\n\n{content}"
+                    else:
+                        bedrock_msgs.append({"role": role, "content": [{"text": content}]})
+        
+        if bedrock_msgs and bedrock_msgs[-1]["role"] == "user":
+            bedrock_msgs[-1]["content"][0]["text"] += f"\n\n{user_prompt}"
+        else:
+            bedrock_msgs.append({"role": "user", "content": [{"text": user_prompt}]})
+            
+        return bedrock_msgs
+
     def generate_answer(self, system_prompt: str, user_prompt: str, history: list = None) -> str:
         """Generate spiritual response using Multi-Provider Cascade: FreeLLMAPI -> Groq -> Gemini -> Ollama."""
         messages = self._build_messages(system_prompt, user_prompt, history)
         gemini_prompt = self._build_gemini_prompt(system_prompt, user_prompt, history)
+
+        # Tier 0: Try AWS Bedrock (Primary - Uses AWS Credits)
+        if self.bedrock_client:
+            try:
+                bedrock_msgs = self._build_bedrock_messages(user_prompt, history)
+                response = self.bedrock_client.converse(
+                    modelId=self.bedrock_model_id,
+                    messages=bedrock_msgs,
+                    system=[{"text": system_prompt}],
+                    inferenceConfig={"temperature": 0.3}
+                )
+                output = response.get("output", {}).get("message", {}).get("content", [])
+                if output and "text" in output[0]:
+                    return output[0]["text"]
+            except Exception as e:
+                print(f"[Brain] AWS Bedrock converse failed: {e}. Failing over...")
+
+        # Tier 0: Try AWS Bedrock Stream (Primary - Uses AWS Credits)
+        if self.bedrock_client:
+            try:
+                bedrock_msgs = self._build_bedrock_messages(user_prompt, history)
+                response = self.bedrock_client.converse_stream(
+                    modelId=self.bedrock_model_id,
+                    messages=bedrock_msgs,
+                    system=[{"text": system_prompt}],
+                    inferenceConfig={"temperature": 0.3}
+                )
+                stream = response.get("stream")
+                if stream:
+                    for event in stream:
+                        if "contentBlockDelta" in event:
+                            text = event["contentBlockDelta"].get("delta", {}).get("text", "")
+                            if text:
+                                yield text
+                    return
+            except Exception as e:
+                print(f"[Brain] AWS Bedrock stream failed: {e}. Failing over...")
 
         # Tier 1: Try FreeLLMAPI Unified Gateway (34 free providers with auto-failover)
         if self.freellm_client:
@@ -497,6 +574,43 @@ If no specific reference is mentioned or active, return: {{}}
         """Streams answer token-by-token using Multi-Provider Cascade: FreeLLMAPI -> Groq -> Gemini -> Ollama."""
         messages = self._build_messages(system_prompt, user_prompt, history)
         gemini_prompt = self._build_gemini_prompt(system_prompt, user_prompt, history)
+
+        # Tier 0: Try AWS Bedrock (Primary - Uses AWS Credits)
+        if self.bedrock_client:
+            try:
+                bedrock_msgs = self._build_bedrock_messages(user_prompt, history)
+                response = self.bedrock_client.converse(
+                    modelId=self.bedrock_model_id,
+                    messages=bedrock_msgs,
+                    system=[{"text": system_prompt}],
+                    inferenceConfig={"temperature": 0.3}
+                )
+                output = response.get("output", {}).get("message", {}).get("content", [])
+                if output and "text" in output[0]:
+                    return output[0]["text"]
+            except Exception as e:
+                print(f"[Brain] AWS Bedrock converse failed: {e}. Failing over...")
+
+        # Tier 0: Try AWS Bedrock Stream (Primary - Uses AWS Credits)
+        if self.bedrock_client:
+            try:
+                bedrock_msgs = self._build_bedrock_messages(user_prompt, history)
+                response = self.bedrock_client.converse_stream(
+                    modelId=self.bedrock_model_id,
+                    messages=bedrock_msgs,
+                    system=[{"text": system_prompt}],
+                    inferenceConfig={"temperature": 0.3}
+                )
+                stream = response.get("stream")
+                if stream:
+                    for event in stream:
+                        if "contentBlockDelta" in event:
+                            text = event["contentBlockDelta"].get("delta", {}).get("text", "")
+                            if text:
+                                yield text
+                    return
+            except Exception as e:
+                print(f"[Brain] AWS Bedrock stream failed: {e}. Failing over...")
 
         # Tier 1: Try FreeLLMAPI Unified Gateway (34 free providers with auto-failover)
         if self.freellm_client:
