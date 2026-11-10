@@ -504,7 +504,7 @@ If no specific reference is mentioned or active, return: {{}}
         return bedrock_msgs
 
     def generate_answer(self, system_prompt: str, user_prompt: str, history: list = None) -> str:
-        """Generate spiritual response using Multi-Provider Cascade: FreeLLMAPI -> Groq -> Gemini -> Ollama."""
+        """Generate spiritual response using Multi-Provider Cascade: Groq -> Bedrock -> FreeLLMAPI -> Gemini -> Ollama."""
         messages = self._build_messages(system_prompt, user_prompt, history)
         gemini_prompt = self._build_gemini_prompt(system_prompt, user_prompt, history)
 
@@ -515,39 +515,28 @@ If no specific reference is mentioned or active, return: {{}}
                     model="llama-3.3-70b-versatile",
                     messages=messages,
                     temperature=0.3,
-                    stream=True
                 )
-                for chunk in completion:
-                    delta = chunk.choices[0].delta.content
-                    if delta:
-                        yield delta
-                return
+                return completion.choices[0].message.content
             except Exception as e:
-                print(f"[Brain] Groq stream failed / rate-limited: {e}. Failing over...", flush=True)
+                print(f"[Brain] Groq generate failed: {e}. Failing over...", flush=True)
 
-        # Tier 1: Try AWS Bedrock Stream (Fallback - Uses AWS Credits)
+        # Tier 1: Try AWS Bedrock (Fallback - Uses AWS Credits)
         if self.bedrock_client:
             try:
                 bedrock_msgs = self._build_bedrock_messages(user_prompt, history)
-                response = self.bedrock_client.converse_stream(
+                response = self.bedrock_client.converse(
                     modelId=self.bedrock_model_id,
                     messages=bedrock_msgs,
                     system=[{"text": system_prompt}],
                     inferenceConfig={"temperature": 0.3}
                 )
-                stream = response.get("stream")
-                if stream:
-                    for event in stream:
-                        if "contentBlockDelta" in event:
-                            text = event["contentBlockDelta"].get("delta", {}).get("text", "")
-                            if text:
-                                yield text
-                    return
+                output = response.get("output", {}).get("message", {}).get("content", [])
+                if output and "text" in output[0]:
+                    return output[0]["text"]
             except Exception as e:
-                last_bedrock_error = str(e)
-                print(f"[Brain] AWS Bedrock stream failed: {e}. Failing over...", flush=True)
+                print(f"[Brain] AWS Bedrock converse failed: {e}. Failing over...", flush=True)
 
-        # Tier 1: Try FreeLLMAPI Unified Gateway (34 free providers with auto-failover)
+        # Tier 2: Try FreeLLMAPI Unified Gateway
         if self.freellm_client:
             try:
                 completion = self.freellm_client.chat.completions.create(
@@ -558,18 +547,6 @@ If no specific reference is mentioned or active, return: {{}}
                 return completion.choices[0].message.content
             except Exception as e:
                 print(f"[Brain] FreeLLMAPI failed: {e}. Failing over...")
-
-        # Tier 2: Try Groq Cloud (Fastest - 300+ tokens/sec)
-        if self.groq_client:
-            try:
-                completion = self.groq_client.chat.completions.create(
-                    model="llama-3.3-70b-versatile",
-                    messages=messages,
-                    temperature=0.3,
-                )
-                return completion.choices[0].message.content
-            except Exception as e:
-                print(f"[Brain] Groq failed / rate-limited: {e}. Failing over to Gemini...")
 
         # Tier 3: Try Google Gemini Cloud (Direct Fallback)
         if self.gemini_client:
@@ -598,7 +575,7 @@ If no specific reference is mentioned or active, return: {{}}
             except Exception as e:
                 print(f"[Brain] Local Ollama generation error: {e}")
 
-        return "I apologize, but all AI providers (FreeLLMAPI, Groq, Gemini, and local Ollama) are currently unreachable. Please check your API keys or local services."
+        return "I apologize, but all AI providers are currently unreachable. Please check your API keys or local services."
 
     def stream_answer(self, system_prompt: str, user_prompt: str, history: list = None):
         last_bedrock_error = None
