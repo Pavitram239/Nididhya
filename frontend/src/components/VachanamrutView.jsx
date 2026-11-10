@@ -231,22 +231,16 @@ export default function VachanamrutView({ lang, initialCitation }) {
 
                 <div style={styles.readerLangControl}>
                   <button
-                    onClick={() => setLocalLang("gu")}
-                    style={{ ...styles.langTab, ...(localLang === "gu" ? styles.langTabActive : {}) }}
-                  >
-                    ગુ
-                  </button>
-                  <button
                     onClick={() => setLocalLang("en")}
                     style={{ ...styles.langTab, ...(localLang === "en" ? styles.langTabActive : {}) }}
                   >
                     EN
                   </button>
                   <button
-                    onClick={() => setLocalLang("hi")}
-                    style={{ ...styles.langTab, ...(localLang === "hi" ? styles.langTabActive : {}) }}
+                    onClick={() => setLocalLang("gu")}
+                    style={{ ...styles.langTab, ...(localLang === "gu" ? styles.langTabActive : {}) }}
                   >
-                    हि
+                    ગુ
                   </button>
                 </div>
               </div>

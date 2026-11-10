@@ -90,22 +90,16 @@ export default function ReadingPanel({ citation, onClose, lang }) {
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <div style={styles.langSegment}>
             <button
-              onClick={() => setLocalLang("gu")}
-              style={{ ...styles.langBtn, ...(localLang === "gu" ? styles.langBtnActive : {}) }}
-            >
-              ગુ
-            </button>
-            <button
               onClick={() => setLocalLang("en")}
               style={{ ...styles.langBtn, ...(localLang === "en" ? styles.langBtnActive : {}) }}
             >
               EN
             </button>
             <button
-              onClick={() => setLocalLang("hi")}
-              style={{ ...styles.langBtn, ...(localLang === "hi" ? styles.langBtnActive : {}) }}
+              onClick={() => setLocalLang("gu")}
+              style={{ ...styles.langBtn, ...(localLang === "gu" ? styles.langBtnActive : {}) }}
             >
-              हि
+              ગુ
             </button>
           </div>
 

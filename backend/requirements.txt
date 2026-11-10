@@ -10,3 +10,4 @@ google-generativeai
 openai
 fastembed
 boto3
+pysqlite3-binary; sys_platform == 'linux'

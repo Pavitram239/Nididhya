@@ -59,13 +59,14 @@ export default function HomeView({ onNavigate, lang }) {
   ];
 
   return (
-    <div style={{ ...styles.container, padding: isMobile ? "20px 14px 80px 14px" : "32px 24px 60px 24px" }}>
-      {/* Hero Banner */}
+    <div style={styles.scrollWrapper}>
+      <div style={{ ...styles.container, padding: isMobile ? "20px 14px 80px 14px" : "32px 24px 60px 24px" }}>
+        {/* Hero Banner */}
       <div style={{ ...styles.hero, padding: isMobile ? "28px 20px" : "48px 40px" }}>
         <div style={styles.heroContent}>
           <div style={styles.greetingBadge}>
             <Sun size={14} color="var(--accent-primary)" />
-            <span>{lang === "gu" ? "નિદિધ્યા • Nididhya" : "Welcome to Nididhya"}</span>
+            <span>{lang === "gu" ? "નિદિધ્યાસમાં આપનું સ્વાગત છે" : "Welcome to Nididhiyas"}</span>
           </div>
 
           <h1 style={{ ...styles.heroTitle, fontSize: isMobile ? "22px" : "32px" }}>
@@ -88,13 +89,6 @@ export default function HomeView({ onNavigate, lang }) {
               <Sparkles size={16} />
               <span>{lang === "gu" ? "AI સાથે પ્રશ્ન પૂછો" : "Ask AI Assistant"}</span>
             </button>
-            <button
-              onClick={() => onNavigate("vachanamrut")}
-              style={{ ...styles.btnSecondary, justifyContent: "center" }}
-            >
-              <BookOpen size={16} />
-              <span>{lang === "gu" ? "વચનામૃત વાંચો" : "Browse Vachanamrut"}</span>
-            </button>
           </div>
         </div>
       </div>
@@ -116,11 +110,12 @@ export default function HomeView({ onNavigate, lang }) {
             return (
               <div
                 key={card.id}
+                className="scripture-card"
                 style={styles.card}
                 onClick={() => onNavigate(card.id)}
               >
                 <div style={styles.cardTop}>
-                  <div style={{ ...styles.cardIconBox, backgroundColor: card.accent }}>
+                  <div className="card-icon-box" style={{ ...styles.cardIconBox, backgroundColor: card.accent }}>
                     <Icon size={20} color="#fff" />
                   </div>
                   <span style={styles.cardCount}>{card.count}</span>
@@ -135,7 +130,9 @@ export default function HomeView({ onNavigate, lang }) {
                   <span style={styles.cardActionText}>
                     {lang === "gu" ? "ખોલો" : "Explore"}
                   </span>
-                  <ArrowRight size={14} color="var(--accent-primary)" />
+                  <div className="card-arrow">
+                    <ArrowRight size={14} color="var(--accent-primary)" />
+                  </div>
                 </div>
               </div>
             );
@@ -161,6 +158,7 @@ export default function HomeView({ onNavigate, lang }) {
           {featuredTopics.map((topic) => (
             <div
               key={topic.id}
+              className="topic-chip"
               style={styles.topicChip}
               onClick={() => onNavigate("topics")}
             >
@@ -171,18 +169,22 @@ export default function HomeView({ onNavigate, lang }) {
         </div>
       </div>
     </div>
+  </div>
   );
 }
 
 const styles = {
+  scrollWrapper: {
+    width: "100%",
+    height: "calc(100vh - var(--header-height, 72px))",
+    overflowY: "auto"
+  },
   container: {
     maxWidth: "1200px",
     margin: "0 auto",
     display: "flex",
     flexDirection: "column",
-    gap: "32px",
-    overflowY: "auto",
-    height: "calc(100vh - 60px)"
+    gap: "32px"
   },
   hero: {
     background: "linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-muted) 100%)",

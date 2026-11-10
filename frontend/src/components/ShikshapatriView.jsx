@@ -40,8 +40,9 @@ export default function ShikshapatriView({ lang }) {
   });
 
   return (
-    <div style={styles.container}>
-      {/* Header */}
+    <div style={styles.scrollWrapper}>
+      <div style={styles.container}>
+        {/* Header */}
       <div style={styles.header}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <div style={styles.iconCircle}>
@@ -111,20 +112,24 @@ export default function ShikshapatriView({ lang }) {
           ))}
         </div>
       )}
+      </div>
     </div>
   );
 }
 
 const styles = {
+  scrollWrapper: {
+    width: "100%",
+    height: "calc(100vh - var(--header-height, 72px))",
+    overflowY: "auto"
+  },
   container: {
     maxWidth: "960px",
     margin: "0 auto",
     padding: "32px 24px",
     display: "flex",
     flexDirection: "column",
-    gap: "24px",
-    height: "calc(100vh - 64px)",
-    overflowY: "auto"
+    gap: "24px"
   },
   header: {
     display: "flex",

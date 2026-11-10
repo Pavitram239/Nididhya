@@ -148,3 +148,353 @@ button {
   cursor: pointer;
   outline: none;
 }
+
+/* Card & Chip Interactive Hover Effects */
+.scripture-card {
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease, border-color 0.25s ease !important;
+}
+
+.scripture-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 28px rgba(35, 31, 28, 0.12) !important;
+  border-color: var(--accent-primary) !important;
+}
+
+[data-theme="dark"] .scripture-card:hover {
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5) !important;
+}
+
+.scripture-card .card-icon-box {
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.scripture-card:hover .card-icon-box {
+  transform: scale(1.08) rotate(-3deg);
+}
+
+.scripture-card .card-arrow {
+  display: inline-flex;
+  align-items: center;
+  transition: transform 0.22s ease;
+}
+
+.scripture-card:hover .card-arrow {
+  transform: translateX(5px);
+}
+
+.topic-chip {
+  transition: transform 0.18s ease, background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease !important;
+}
+
+.topic-chip:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-gold) !important;
+  background-color: var(--bg-hover) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+/* ==========================================================================
+   Header & Navigation (10/10 Premium System)
+   ========================================================================== */
+
+:root {
+  --header-height: 72px;
+}
+
+.nididhya-header {
+  height: var(--header-height);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 0 24px;
+  background-color: var(--bg-surface);
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.header-brand-col {
+  justify-self: start;
+  display: flex;
+  align-items: center;
+}
+
+.header-nav-col {
+  justify-self: center;
+  display: flex;
+  align-items: center;
+}
+
+.header-controls-col {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.brand-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+  text-decoration: none;
+}
+
+.brand-logo-badge {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-md);
+  background-color: var(--accent-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.brand-text-block {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.brand-subtitle {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+/* Navigation Capsule */
+.nav-capsule {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 46px;
+  background-color: var(--bg-muted);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-full);
+  padding: 4px;
+  box-sizing: border-box;
+}
+
+.nav-item-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 38px;
+  padding: 0 14px;
+  border-radius: var(--radius-full);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  line-height: 1;
+}
+
+.nav-item-btn:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.nav-item-btn.active {
+  background-color: var(--bg-surface);
+  color: var(--accent-primary);
+  font-weight: 600;
+  border-color: var(--border-color);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.nav-item-btn:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 1px;
+}
+
+/* Utility Controls */
+.header-segmented-lang {
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  background-color: var(--bg-muted);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 2px;
+  box-sizing: border-box;
+}
+
+.header-lang-btn {
+  height: 32px;
+  min-width: 36px;
+  padding: 0 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.header-lang-btn:hover {
+  color: var(--text-primary);
+  background-color: var(--bg-hover);
+}
+
+.header-lang-btn.active {
+  background-color: var(--bg-surface);
+  color: var(--accent-primary);
+  font-weight: 700;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.header-lang-btn:focus-visible {
+  outline: 2px solid var(--accent-primary);
+}
+
+.header-icon-btn {
+  height: 40px;
+  min-width: 40px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-surface);
+  color: var(--text-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.header-icon-btn:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+  border-color: var(--accent-primary);
+}
+
+.header-icon-btn:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 1px;
+}
+
+/* Mobile Bottom Navigation */
+.app-bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background-color: var(--bg-surface);
+  border-top: 1px solid var(--border-color);
+  align-items: center;
+  justify-content: space-around;
+  z-index: 1000;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.bottom-nav-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  height: 100%;
+  min-height: 48px;
+  color: var(--text-muted);
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.15s ease;
+  gap: 3px;
+}
+
+.bottom-nav-btn:hover {
+  color: var(--text-primary);
+}
+
+.bottom-nav-btn.active {
+  color: var(--accent-primary);
+  font-weight: 600;
+}
+
+.bottom-nav-label {
+  font-size: 11px;
+  line-height: 1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1180px) {
+  .nav-capsule {
+    gap: 2px;
+  }
+  .nav-item-btn {
+    padding: 0 10px;
+    font-size: 13.5px;
+    gap: 5px;
+  }
+  .brand-subtitle {
+    display: none;
+  }
+}
+
+@media (max-width: 960px) {
+  :root {
+    --header-height: 64px;
+  }
+  .header-nav-col {
+    display: none;
+  }
+  .nididhya-header {
+    display: flex;
+    justify-content: space-between;
+    height: var(--header-height);
+    padding: 0 16px;
+  }
+  .brand-logo-badge {
+    width: 38px;
+    height: 38px;
+  }
+  .brand-title {
+    font-size: 20px;
+  }
+  .app-bottom-nav {
+    display: flex;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-item-btn,
+  .header-lang-btn,
+  .header-icon-btn,
+  .bottom-nav-btn {
+    transition: none !important;
+  }
+}
+
+
