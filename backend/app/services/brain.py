@@ -72,13 +72,14 @@ class Brain:
                 print(f"[Brain Notice] Ollama daemon not reachable at {self.ollama_host}: {e}")
                 self.ollama_available = False
 
-        # 0. AWS Bedrock Client (Primary - Billed to AWS Credits)
+        # 0. AWS Bedrock Client (Fallback - Disabled by default while quotas are 0)
+        self.use_bedrock = os.getenv("USE_BEDROCK", "false").lower() == "true"
         self.bedrock_region = os.getenv("AWS_REGION", os.getenv("AWS_DEFAULT_REGION", "us-east-1"))
         self.bedrock_model_id = os.getenv("BEDROCK_MODEL_ID", "us.meta.llama3-3-70b-instruct-v1:0")
         aws_access_key = os.getenv("AWS_ACCESS_KEY_ID")
         aws_secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
         self.bedrock_client = None
-        if boto3:
+        if self.use_bedrock and boto3:
             try:
                 boto_kwargs = {
                     "service_name": "bedrock-runtime",

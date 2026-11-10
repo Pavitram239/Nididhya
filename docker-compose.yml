@@ -7,6 +7,7 @@ services:
       - .env
     environment:
       - GROQ_API_KEY=${GROQ_API_KEY}
+      - USE_BEDROCK=${USE_BEDROCK:-false}
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - AWS_REGION=${AWS_REGION:-us-east-1}
@@ -31,6 +32,7 @@ services:
       - /app/node_modules
     environment:
       - GROQ_API_KEY=${GROQ_API_KEY}
+      - USE_BEDROCK=${USE_BEDROCK:-false}
       - WATCHPACK_POLLING=true
       - CHOKIDAR_USEPOLLING=true
     depends_on:
