@@ -527,6 +527,7 @@ If no specific reference is mentioned or active, return: {{}}
                                 yield text
                     return
             except Exception as e:
+                last_bedrock_error = str(e)
                 print(f"[Brain] AWS Bedrock stream failed: {e}. Failing over...", flush=True)
 
         # Tier 1: Try FreeLLMAPI Unified Gateway (34 free providers with auto-failover)
@@ -583,6 +584,7 @@ If no specific reference is mentioned or active, return: {{}}
         return "I apologize, but all AI providers (FreeLLMAPI, Groq, Gemini, and local Ollama) are currently unreachable. Please check your API keys or local services."
 
     def stream_answer(self, system_prompt: str, user_prompt: str, history: list = None):
+        last_bedrock_error = None
         """Streams answer token-by-token using Multi-Provider Cascade: FreeLLMAPI -> Groq -> Gemini -> Ollama."""
         messages = self._build_messages(system_prompt, user_prompt, history)
         gemini_prompt = self._build_gemini_prompt(system_prompt, user_prompt, history)
@@ -606,6 +608,7 @@ If no specific reference is mentioned or active, return: {{}}
                                 yield text
                     return
             except Exception as e:
+                last_bedrock_error = str(e)
                 print(f"[Brain] AWS Bedrock stream failed: {e}. Failing over...", flush=True)
 
         # Tier 1: Try FreeLLMAPI Unified Gateway (34 free providers with auto-failover)
@@ -675,7 +678,7 @@ If no specific reference is mentioned or active, return: {{}}
             except Exception as e:
                 print(f"[Brain Stream Error] {e}")
 
-        yield "Please provide a valid GROQ_API_KEY, GEMINI_API_KEY in `.env`, or ensure Ollama is running locally."
+        yield f"AI Service Notice: Bedrock was unable to complete the request (Error: {last_bedrock_error}). Please check AWS Bedrock quotas or model access."
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
