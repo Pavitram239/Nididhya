@@ -130,7 +130,7 @@ def ask_ai(request: QueryRequest):
 
     docs = results['documents'][0]
     metas = results['metadatas'][0]
-    context_text = "\n\n".join(docs)
+    context_text = "\n\n".join(docs[:3])
 
     # D. Multi-Scripture System Prompt & Generation
     system_prompt = (
@@ -175,7 +175,7 @@ def ask_ai_stream(request: QueryRequest):
     
     docs = results['documents'][0] if results.get('documents') and results['documents'][0] else []
     metas = results['metadatas'][0] if results.get('metadatas') and results['metadatas'][0] else []
-    context_text = "\n\n".join(docs)
+    context_text = "\n\n".join(docs[:3])
 
     system_prompt = (
         "You are Nididhya, an authentic and revered spiritual assistant rooted in the teachings "
