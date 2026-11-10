@@ -95,7 +95,7 @@ export default function HomeView({ onNavigate, lang }) {
 
       {/* Scripture Quick Access Grid */}
       <div style={styles.section}>
-        <div style={styles.sectionHeader}>
+        <div style={{ ...styles.sectionHeader, flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "flex-start" : "baseline", gap: isMobile ? "4px" : "0px" }}>
           <h2 style={{ ...styles.sectionTitle, fontSize: isMobile ? "18px" : "22px" }}>
             {lang === "gu" ? "પવિત્ર શાસ્ત્રો" : "Sacred Scriptures"}
           </h2>
