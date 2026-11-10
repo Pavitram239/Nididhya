@@ -6,12 +6,6 @@ services:
     env_file:
       - .env
     environment:
-      - GROQ_API_KEY=${GROQ_API_KEY}
-      - USE_BEDROCK=${USE_BEDROCK:-false}
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-      - AWS_REGION=${AWS_REGION:-us-east-1}
-      - BEDROCK_MODEL_ID=${BEDROCK_MODEL_ID:-us.meta.llama3-3-70b-instruct-v1:0}
       - OLLAMA_HOST=http://host.docker.internal:11434
       - FREELLMAPI_URL=http://host.docker.internal:3001/v1
     extra_hosts:
@@ -31,8 +25,6 @@ services:
       - ./frontend:/app
       - /app/node_modules
     environment:
-      - GROQ_API_KEY=${GROQ_API_KEY}
-      - USE_BEDROCK=${USE_BEDROCK:-false}
       - WATCHPACK_POLLING=true
       - CHOKIDAR_USEPOLLING=true
     depends_on:
