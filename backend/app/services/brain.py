@@ -264,7 +264,7 @@ If no specific reference is mentioned or active, return: {{}}
         if self.groq_client:
             try:
                 completion = self.groq_client.chat.completions.create(
-                    model="llama-3.1-8b-instant",
+                    model="qwen/qwen3.8-27b",
                     messages=[
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": user_query}
@@ -512,7 +512,7 @@ If no specific reference is mentioned or active, return: {{}}
 
         # Tier 0: Try Groq Cloud (Fastest - 300+ tokens/sec)
         if self.groq_client:
-            for model_name in ["llama-3.1-8b-instant", "llama-3.3-70b-versatile", "llama3-8b-8192", "mixtral-8x7b-32768"]:
+            for model_name in ["qwen/qwen3.8-27b", "openai/gpt-oss-120b", "openai/gpt-oss-20b", "llama-3.1-8b-instant"]:
                 try:
                     completion = self.groq_client.chat.completions.create(
                         model=model_name,
@@ -589,7 +589,7 @@ If no specific reference is mentioned or active, return: {{}}
 
         # Tier 0: Try Groq Cloud (Fastest - 300+ tokens/sec)
         if self.groq_client:
-            for model_name in ["llama-3.1-8b-instant", "llama-3.3-70b-versatile", "llama3-8b-8192", "mixtral-8x7b-32768"]:
+            for model_name in ["qwen/qwen3.8-27b", "openai/gpt-oss-120b", "openai/gpt-oss-20b", "llama-3.1-8b-instant"]:
                 try:
                     completion = self.groq_client.chat.completions.create(
                         model=model_name,
