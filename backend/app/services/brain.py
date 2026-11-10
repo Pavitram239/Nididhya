@@ -264,7 +264,7 @@ If no specific reference is mentioned or active, return: {{}}
         if self.groq_client:
             try:
                 completion = self.groq_client.chat.completions.create(
-                    model="llama-3.3-70b-versatile",
+                    model="llama-3.1-8b-instant",
                     messages=[
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": user_query}
@@ -512,15 +512,16 @@ If no specific reference is mentioned or active, return: {{}}
 
         # Tier 0: Try Groq Cloud (Fastest - 300+ tokens/sec)
         if self.groq_client:
-            try:
-                completion = self.groq_client.chat.completions.create(
-                    model="llama-3.3-70b-versatile",
-                    messages=messages,
-                    temperature=0.3,
-                )
-                return completion.choices[0].message.content
-            except Exception as e:
-                print(f"[Brain] Groq generate failed: {e}. Failing over...", flush=True)
+            for model_name in ["llama-3.1-8b-instant", "llama-3.3-70b-versatile", "llama3-8b-8192", "mixtral-8x7b-32768"]:
+                try:
+                    completion = self.groq_client.chat.completions.create(
+                        model=model_name,
+                        messages=messages,
+                        temperature=0.3,
+                    )
+                    return completion.choices[0].message.content
+                except Exception as e:
+                    print(f"[Brain] Groq model {model_name} failed: {e}. Trying fallback model...", flush=True)
 
         # Tier 1: Try AWS Bedrock (Fallback - Uses AWS Credits)
         if self.bedrock_client:
@@ -588,21 +589,22 @@ If no specific reference is mentioned or active, return: {{}}
 
         # Tier 0: Try Groq Cloud (Fastest - 300+ tokens/sec)
         if self.groq_client:
-            try:
-                completion = self.groq_client.chat.completions.create(
-                    model="llama-3.3-70b-versatile",
-                    messages=messages,
-                    temperature=0.3,
-                    stream=True
-                )
-                for chunk in completion:
-                    delta = chunk.choices[0].delta.content
-                    if delta:
-                        yield delta
-                return
-            except Exception as e:
-                last_groq_error = str(e)
-                print(f"[Brain] Groq stream failed / rate-limited: {e}. Failing over...", flush=True)
+            for model_name in ["llama-3.1-8b-instant", "llama-3.3-70b-versatile", "llama3-8b-8192", "mixtral-8x7b-32768"]:
+                try:
+                    completion = self.groq_client.chat.completions.create(
+                        model=model_name,
+                        messages=messages,
+                        temperature=0.3,
+                        stream=True
+                    )
+                    for chunk in completion:
+                        delta = chunk.choices[0].delta.content
+                        if delta:
+                            yield delta
+                    return
+                except Exception as e:
+                    last_groq_error = str(e)
+                    print(f"[Brain] Groq model {model_name} stream failed: {e}. Trying next model...", flush=True)
 
         # Tier 1: Try AWS Bedrock Stream (Fallback - Uses AWS Credits)
         if self.bedrock_client:
