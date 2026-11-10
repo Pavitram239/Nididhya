@@ -508,7 +508,24 @@ If no specific reference is mentioned or active, return: {{}}
         messages = self._build_messages(system_prompt, user_prompt, history)
         gemini_prompt = self._build_gemini_prompt(system_prompt, user_prompt, history)
 
-        # Tier 0: Try AWS Bedrock Stream (Primary - Uses AWS Credits)
+        # Tier 0: Try Groq Cloud (Fastest - 300+ tokens/sec)
+        if self.groq_client:
+            try:
+                completion = self.groq_client.chat.completions.create(
+                    model="llama-3.3-70b-versatile",
+                    messages=messages,
+                    temperature=0.3,
+                    stream=True
+                )
+                for chunk in completion:
+                    delta = chunk.choices[0].delta.content
+                    if delta:
+                        yield delta
+                return
+            except Exception as e:
+                print(f"[Brain] Groq stream failed / rate-limited: {e}. Failing over...", flush=True)
+
+        # Tier 1: Try AWS Bedrock Stream (Fallback - Uses AWS Credits)
         if self.bedrock_client:
             try:
                 bedrock_msgs = self._build_bedrock_messages(user_prompt, history)
@@ -589,7 +606,24 @@ If no specific reference is mentioned or active, return: {{}}
         messages = self._build_messages(system_prompt, user_prompt, history)
         gemini_prompt = self._build_gemini_prompt(system_prompt, user_prompt, history)
 
-        # Tier 0: Try AWS Bedrock Stream (Primary - Uses AWS Credits)
+        # Tier 0: Try Groq Cloud (Fastest - 300+ tokens/sec)
+        if self.groq_client:
+            try:
+                completion = self.groq_client.chat.completions.create(
+                    model="llama-3.3-70b-versatile",
+                    messages=messages,
+                    temperature=0.3,
+                    stream=True
+                )
+                for chunk in completion:
+                    delta = chunk.choices[0].delta.content
+                    if delta:
+                        yield delta
+                return
+            except Exception as e:
+                print(f"[Brain] Groq stream failed / rate-limited: {e}. Failing over...", flush=True)
+
+        # Tier 1: Try AWS Bedrock Stream (Fallback - Uses AWS Credits)
         if self.bedrock_client:
             try:
                 bedrock_msgs = self._build_bedrock_messages(user_prompt, history)
@@ -627,22 +661,7 @@ If no specific reference is mentioned or active, return: {{}}
             except Exception as e:
                 print(f"[Brain] FreeLLMAPI stream failed: {e}. Failing over...")
 
-        # Tier 2: Try Groq Cloud (Fastest - 300+ tokens/sec)
-        if self.groq_client:
-            try:
-                completion = self.groq_client.chat.completions.create(
-                    model="llama-3.3-70b-versatile",
-                    messages=messages,
-                    temperature=0.3,
-                    stream=True
-                )
-                for chunk in completion:
-                    delta = chunk.choices[0].delta.content
-                    if delta:
-                        yield delta
-                return
-            except Exception as e:
-                print(f"[Brain] Groq stream failed / rate-limited: {e}. Failing over to Gemini...")
+
 
         # Tier 3: Try Google Gemini Cloud (Failover)
         if self.gemini_client:
