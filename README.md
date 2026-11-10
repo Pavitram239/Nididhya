@@ -1,6 +1,8 @@
 # Nididhya (નિદિધ્યા)
 > *From Reading to Realization — Sacred Scriptures & AI Spiritual Companion*
 
+🌐 **Live Demo**: [http://13.234.251.117:3000/](http://13.234.251.117:3000/)
+
 A full-stack spiritual exploration platform uniting the divine discourses of **Vachanamrut**, **Swamini Vato** (with Sandarbh commentary), **Shikshapatri**, and **Thematic Explorer (Vishayvar)** with a Retrieval-Augmented Generation (RAG) AI assistant.
 
 Built with **Python FastAPI** on the backend and **React + Vite** on the frontend, featuring both light parchment and temple dark themes.
