@@ -328,9 +328,7 @@ export default function ChatPanel({ onCitationClick, isPanelOpen, lang }) {
 
 const styles = {
   container: {
-    height: "100%",
-    maxHeight: "100%",
-    flex: 1,
+    height: "calc(100vh - 64px)",
     display: "flex",
     flexDirection: "column",
     backgroundColor: "var(--bg-app)",

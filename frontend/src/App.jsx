@@ -51,7 +51,7 @@ function App() {
       />
 
       {/* Main Content Area */}
-      <div className="main-content-area" style={{ flex: 1, position: "relative", overflow: "hidden" }}>
+      <div style={{ flex: 1, position: "relative", overflow: "hidden" }}>
         {currentTab === "home" && (
           <HomeView
             onNavigate={(tab) => {
