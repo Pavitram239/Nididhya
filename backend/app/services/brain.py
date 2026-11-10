@@ -75,16 +75,22 @@ class Brain:
         # 0. AWS Bedrock Client (Primary - Billed to AWS Credits)
         self.bedrock_region = os.getenv("AWS_REGION", os.getenv("AWS_DEFAULT_REGION", "us-east-1"))
         self.bedrock_model_id = os.getenv("BEDROCK_MODEL_ID", "us.meta.llama3-3-70b-instruct-v1:0")
+        aws_access_key = os.getenv("AWS_ACCESS_KEY_ID")
+        aws_secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
         self.bedrock_client = None
         if boto3:
             try:
-                self.bedrock_client = boto3.client(
-                    service_name="bedrock-runtime",
-                    region_name=self.bedrock_region
-                )
-                print(f"[Brain] AWS Bedrock client initialized (Region: {self.bedrock_region}, Model: {self.bedrock_model_id}).")
+                boto_kwargs = {
+                    "service_name": "bedrock-runtime",
+                    "region_name": self.bedrock_region,
+                }
+                if aws_access_key and aws_secret_key:
+                    boto_kwargs["aws_access_key_id"] = aws_access_key
+                    boto_kwargs["aws_secret_access_key"] = aws_secret_key
+                self.bedrock_client = boto3.client(**boto_kwargs)
+                print(f"[Brain] AWS Bedrock client initialized (Region: {self.bedrock_region}, Model: {self.bedrock_model_id}, ExplicitAuth: {bool(aws_access_key)}).", flush=True)
             except Exception as e:
-                print(f"[Brain Notice] AWS Bedrock init error: {e}")
+                print(f"[Brain Notice] AWS Bedrock init error: {e}", flush=True)
                 self.bedrock_client = None
 
         # 2. Cloud LLMs: FreeLLMAPI (Tier 1 Primary), Groq, and Google Gemini

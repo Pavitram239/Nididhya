@@ -6,6 +6,10 @@ services:
     env_file:
       - .env
     environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - BEDROCK_MODEL_ID=${BEDROCK_MODEL_ID:-us.meta.llama3-3-70b-instruct-v1:0}
       - OLLAMA_HOST=http://host.docker.internal:11434
       - FREELLMAPI_URL=http://host.docker.internal:3001/v1
     extra_hosts:
