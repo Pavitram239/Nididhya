@@ -5,7 +5,7 @@ import { useResponsive } from "../utils/useResponsive";
 
 export default function SwaminiVatoView({ lang, initialCitation }) {
   const { isMobile } = useResponsive();
-  const [selectedPrakran, setSelectedPrakran] = useState(1);
+  const [selectedPrakran, setSelectedPrakran] = useState(() => Number(initialCitation?.prakran_no) || 1);
   const [list, setList] = useState([]);
   const [loadingList, setLoadingList] = useState(true);
   const [search, setSearch] = useState("");
@@ -38,10 +38,12 @@ export default function SwaminiVatoView({ lang, initialCitation }) {
         if (res.data && res.data.length > 0) {
           if (initialCitation && initialCitation.vat_no) {
             const match = res.data.find(
-              (it) => String(it.vat_no) === String(initialCitation.vat_no)
+              (it) => initialCitation.id != null
+                ? String(it.id) === String(initialCitation.id)
+                : String(it.vat_no) === String(initialCitation.vat_no)
             );
-            setActiveVat(match || res.data[0]);
-            if (isMobile) setMobileViewingReader(true);
+            setActiveVat(match || null);
+            if (isMobile) setMobileViewingReader(Boolean(match));
           } else if (!isMobile) {
             setActiveVat(res.data[0]);
           }

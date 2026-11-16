@@ -110,19 +110,37 @@ export default function TopicsView({ lang, onOpenVat }) {
                     {lang === "gu" ? "આ વિષય સાથે જોડાયેલ વાતો:" : "Linked Discourses:"}
                   </div>
                   <div style={styles.vatGrid}>
-                    {activeTopic.linked_vat_ids?.map((vatId) => (
-                      <div
-                        key={vatId}
-                        style={styles.vatCard}
-                        onClick={() => onOpenVat && onOpenVat({ vat_no: vatId, prakran_no: 1 })}
-                      >
-                        <div style={styles.vatCardNumber}>વાત #{vatId}</div>
-                        <div style={styles.vatCardAction}>
-                          <span>વાંચો</span>
-                          <ArrowRight size={13} />
-                        </div>
-                      </div>
-                    ))}
+                    {activeTopic.linked_vats?.map((vat) => {
+                      const resolved = vat.prakran_no != null && vat.vat_no != null;
+                      return (
+                        <button
+                          key={vat.id}
+                          type="button"
+                          disabled={!resolved}
+                          style={{
+                            ...styles.vatCard,
+                            textAlign: "left",
+                            opacity: resolved ? 1 : 0.6,
+                            cursor: resolved ? "pointer" : "not-allowed"
+                          }}
+                          onClick={() => onOpenVat && onOpenVat(vat)}
+                        >
+                          <span style={styles.vatCardNumber}>
+                            {resolved
+                              ? lang === "gu"
+                                ? `પ્રકરણ ${vat.prakran_no} · વાત ${vat.vat_no}`
+                                : `Prakaran ${vat.prakran_no} · Vat ${vat.vat_no}`
+                              : lang === "gu" ? "વાત ઉપલબ્ધ નથી" : "Discourse unavailable"}
+                          </span>
+                          {resolved && (
+                            <span style={styles.vatCardAction}>
+                              <span>{lang === "gu" ? "વાંચો" : "Read"}</span>
+                              <ArrowRight size={13} />
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </div>

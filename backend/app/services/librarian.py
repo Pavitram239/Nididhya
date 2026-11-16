@@ -125,7 +125,24 @@ class Librarian:
 
     # --- Topics Lookups ---
     def get_all_topics(self):
-        return self.topics_data
+        vats_by_id = {
+            str(vat["id"]): vat
+            for vat in self.swamini_vato_data
+            if vat.get("id") is not None
+        }
+        topics = []
+        for topic in self.topics_data:
+            linked_vats = []
+            for vat_id in topic.get("linked_vat_ids", []):
+                # Topic links use master IDs, not chapter-local vat numbers.
+                vat = vats_by_id.get(str(vat_id), {})
+                linked_vats.append({
+                    "id": vat_id,
+                    "prakran_no": vat.get("prakran_no"),
+                    "vat_no": vat.get("vat_no")
+                })
+            topics.append({**topic, "linked_vats": linked_vats})
+        return topics
 
     # --- Shikshapatri Lookups ---
     def get_all_shikshapatri(self):
