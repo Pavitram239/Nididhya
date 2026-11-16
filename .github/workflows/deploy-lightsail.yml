@@ -1,0 +1,84 @@
+name: Deploy to Lightsail
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  validate:
+    name: Test and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.11'
+      - name: Check topic-link regressions
+        run: python -m unittest discover -s backend/tests -p 'test_topic_links.py' -v
+      - name: Check deployment script
+        run: |
+          bash -n scripts/deploy-lightsail.sh
+          python -m unittest discover -s tests -p 'test_deploy_lightsail.py' -v
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+
+  deploy:
+    name: Update Lightsail
+    needs: validate
+    if: >-
+      github.ref == 'refs/heads/master' &&
+      (github.event_name == 'workflow_dispatch' || vars.LIGHTSAIL_DEPLOY_ENABLED == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    concurrency:
+      group: lightsail-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Deploy the tested commit
+        env:
+          LIGHTSAIL_HOST: ${{ secrets.LIGHTSAIL_HOST }}
+          LIGHTSAIL_SSH_KEY: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+          LIGHTSAIL_KNOWN_HOSTS: ${{ secrets.LIGHTSAIL_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${LIGHTSAIL_HOST:?Add the LIGHTSAIL_HOST repository secret}"
+          : "${LIGHTSAIL_SSH_KEY:?Add the LIGHTSAIL_SSH_KEY repository secret}"
+          : "${LIGHTSAIL_KNOWN_HOSTS:?Add the LIGHTSAIL_KNOWN_HOSTS repository secret}"
+          [[ "$LIGHTSAIL_HOST" =~ ^[a-zA-Z0-9.-]+$ ]] || { echo 'Use the server IPv4 address or hostname.' >&2; exit 1; }
+          umask 077
+          key_file="$RUNNER_TEMP/lightsail-deploy-key"
+          host_file="$RUNNER_TEMP/lightsail-known-hosts"
+          trap 'rm -f -- "$key_file" "$host_file"' EXIT
+          printf '%s\n' "$LIGHTSAIL_SSH_KEY" | tr -d '\r' > "$key_file"
+          printf '%s\n' "$LIGHTSAIL_KNOWN_HOSTS" | tr -d '\r' > "$host_file"
+          ssh-keygen -y -P '' -f "$key_file" > /dev/null
+          ssh -i "$key_file" \
+            -o BatchMode=yes \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile="$host_file" \
+            -o ConnectTimeout=20 \
+            "ubuntu@$LIGHTSAIL_HOST" bash -se -- "$GITHUB_SHA" < scripts/deploy-lightsail.sh
