@@ -20,7 +20,7 @@ The confirmed public IPv4 address is **13.234.251.117**. Keep it attached as a s
 
 ## 2. Create a dedicated deployment key
 
-Run this once in the trusted Lightsail SSH console. It refuses to overwrite an existing key:
+Run this once in the trusted Lightsail SSH console. If this key already exists, skip this section and reuse it; do not regenerate it to update a GitHub secret. The command refuses to overwrite an existing key:
 
 ```bash
 (
@@ -47,16 +47,17 @@ Open [the repository's Actions secrets](https://github.com/Pavitram239/Nididhya/
 | Name | Value |
 | --- | --- |
 | `LIGHTSAIL_HOST` | `13.234.251.117` |
-| `LIGHTSAIL_SSH_KEY` | The complete private key from the command below |
+| `LIGHTSAIL_SSH_KEY` | The one-line base64 encoding of the existing private key from the command below |
 | `LIGHTSAIL_KNOWN_HOSTS` | The trusted host-key line from the following command |
 
-To display the private key in the Lightsail console:
+To copy the existing private key as one line in the Lightsail console:
 
 ```bash
-cat ~/.ssh/nididhya_github_actions
+base64 -w 0 ~/.ssh/nididhya_github_actions
+printf '\n'
 ```
 
-Copy the complete output, including the `BEGIN` and `END` lines, **directly into `LIGHTSAIL_SSH_KEY` on GitHub**. Do not paste it into chat, commit it, or share it elsewhere.
+Copy the whole encoded line **directly into the existing `LIGHTSAIL_SSH_KEY` secret on GitHub**. It may wrap visually in the console; copy all of it. Encoding does not make the private key public or safe to share: do not paste it into chat, commit it, or share it elsewhere. The workflow's key-preparation helper accepts either this one-line base64 value or the original complete multiline private key, but base64 avoids line-break damage while copying. Keep the same secret name; the other two secrets do not change.
 
 For `LIGHTSAIL_KNOWN_HOSTS`, run this in that same trusted console:
 
@@ -77,6 +78,18 @@ Once `.github/workflows/deploy-lightsail.yml` and `scripts/deploy-lightsail.sh` 
 4. Open the app and verify that the topic entry for master ID 539 opens chapter 3, vat 4.
 
 Automatic deployment is initially disabled. Pushes still run validation, but deployment is skipped until the next step. A manual run on `master` can deploy without the variable.
+
+### If SSH reports `error in libcrypto`
+
+In the trusted Lightsail SSH console, validate the existing original key without printing its contents:
+
+```bash
+ssh-keygen -y -P '' -f ~/.ssh/nididhya_github_actions >/dev/null
+```
+
+Successful validation prints nothing. If that command succeeds, copy the key again using the base64 command in step 3 and update only the existing `LIGHTSAIL_SSH_KEY` secret. Do not create a new key or another secret name. If validation fails, stop and report the error text without sharing the key.
+
+After a workflow or helper change has been pushed, start a **new** run through **Actions → Deploy to Lightsail → Run workflow → master**. Do not select **Re-run jobs** on an older failure: a rerun uses that run's original commit and ref, so it does not pick up a newly pushed fix. [GitHub rerun behavior](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/re-run-workflows-and-jobs)
 
 ## 5. Enable deployment after each push
 

@@ -29,7 +29,8 @@ jobs:
       - name: Check deployment script
         run: |
           bash -n scripts/deploy-lightsail.sh
-          python -m unittest discover -s tests -p 'test_deploy_lightsail.py' -v
+          bash -n scripts/prepare-lightsail-key.sh
+          python -m unittest discover -s tests -p 'test_*lightsail*.py' -v
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '22'
@@ -72,9 +73,8 @@ jobs:
           key_file="$RUNNER_TEMP/lightsail-deploy-key"
           host_file="$RUNNER_TEMP/lightsail-known-hosts"
           trap 'rm -f -- "$key_file" "$host_file"' EXIT
-          printf '%s\n' "$LIGHTSAIL_SSH_KEY" | tr -d '\r' > "$key_file"
+          bash scripts/prepare-lightsail-key.sh "$key_file"
           printf '%s\n' "$LIGHTSAIL_KNOWN_HOSTS" | tr -d '\r' > "$host_file"
-          ssh-keygen -y -P '' -f "$key_file" > /dev/null
           ssh -i "$key_file" \
             -o BatchMode=yes \
             -o IdentitiesOnly=yes \
