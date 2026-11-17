@@ -17,6 +17,18 @@ export GIT_SSH_COMMAND='ssh -o BatchMode=yes'
 
 [[ "$(git branch --show-current)" == master ]] || fail 'The server checkout must be on master.'
 [[ -f .env ]] || fail 'The existing server .env file is missing.'
+# Support both Docker Compose command formats.
+if ! docker compose version >/dev/null 2>&1; then
+  docker() {
+    if [[ "${1:-}" == "compose" ]]; then
+      shift
+      command docker-compose "$@"
+    else
+      command docker "$@"
+    fi
+  }
+fi
+
 docker compose version > /dev/null
 
 # Chroma changes its tracked runtime files. Preserve them; Git still refuses
